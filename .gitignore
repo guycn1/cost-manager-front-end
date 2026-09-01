@@ -3,3 +3,6 @@ dist
 .DS_Store
 *.local
 .vite
+
+# reference-only material, not part of this project's own code
+/_samples
