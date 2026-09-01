@@ -13,7 +13,7 @@ export const databaseVersion = 1;
 // Categories offered in the add cost form. The user is also free to
 // type a category that is not on this list.
 export const defaultCategories = [
-    'Food', 'Transport', 'Housing', 'Health', 'Education',
+    'Food', 'Car', 'Transport', 'Housing', 'Health', 'Education',
     'Entertainment', 'Shopping', 'Bills', 'Travel', 'Other'
 ];
 
@@ -25,8 +25,8 @@ export const monthNames = [
 
 // Colours used by the pie chart slices, one per category in order.
 export const chartColors = [
-    '#1976d2', '#e53935', '#43a047', '#fb8c00', '#8e24aa',
-    '#00acc1', '#fdd835', '#6d4c41', '#546e7a', '#d81b60'
+    '#1976d2', '#e53935', '#43a047', '#fb8c00', '#8e24aa', '#00acc1',
+    '#fdd835', '#6d4c41', '#546e7a', '#d81b60', '#3949ab'
 ];
 
 // Build a list of selectable years around the current year.
