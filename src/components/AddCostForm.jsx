@@ -103,7 +103,7 @@ export default function AddCostForm(props) {
                     <TextField
                         label="Sum" type="number" required
                         value={form.sum} onChange={onSum}
-                        inputProps={{ min: '0.01', step: '0.01' }}
+                        inputProps={{ min: 0, step: '0.01' }}
                     />
 
                     {/* Currency, one of the four supported ones. */}
