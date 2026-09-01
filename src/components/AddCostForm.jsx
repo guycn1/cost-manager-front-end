@@ -69,6 +69,11 @@ export default function AddCostForm(props) {
             setErrorText('Please choose or type a category.');
             return;
         }
+        // A description is required too.
+        if (!form.description.trim()) {
+            setErrorText('Please enter a description.');
+            return;
+        }
 
         // db.js stamps the current date onto the stored item.
         try {
@@ -94,11 +99,11 @@ export default function AddCostForm(props) {
         <ScreenCard title="Add a new cost item">
             <Box component="form" onSubmit={handleSubmit} noValidate>
                 <Stack spacing={3} sx={{ mt: 1 }}>
-                    {/* Sum, as a positive number. */}
+                    {/* Sum, which must be a positive number. */}
                     <TextField
                         label="Sum" type="number" required
                         value={form.sum} onChange={onSum}
-                        inputProps={{ min: 0, step: '0.01' }}
+                        inputProps={{ min: '0.01', step: '0.01' }}
                     />
 
                     {/* Currency, one of the four supported ones. */}
@@ -118,9 +123,9 @@ export default function AddCostForm(props) {
                         )}
                     />
 
-                    {/* Free text description. */}
+                    {/* Short description of the cost item. */}
                     <TextField
-                        label="Description" multiline minRows={2}
+                        label="Description" required multiline minRows={2}
                         value={form.description} onChange={onDescription}
                     />
 

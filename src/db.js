@@ -88,10 +88,10 @@ function normaliseCostInput(cost) {
     if (!cost || typeof cost !== 'object') {
         throw new Error('addCost expects a cost object');
     }
-    // The sum has to be a finite number.
+    // The sum has to be a finite positive number.
     const sum = Number(cost.sum);
-    if (!Number.isFinite(sum)) {
-        throw new Error('the sum of a cost item must be a number');
+    if (!Number.isFinite(sum) || sum <= 0) {
+        throw new Error('the sum of a cost item must be a positive number');
     }
     // The currency has to be one of the supported ones.
     const currency = String(cost.currency || '').toUpperCase();
