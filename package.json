@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Front end of a cost manager application. Users track expenses, view monthly reports, and see category and yearly charts in a currency of their choice.",
+  "description": "Front end of a cost manager application with monthly reports and charts.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

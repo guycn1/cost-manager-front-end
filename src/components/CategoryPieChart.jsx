@@ -27,9 +27,12 @@ function buildCategoryTotals(reportCosts, currency) {
         const key = item.category || 'Uncategorised';
         totalsByCategory[key] = (totalsByCategory[key] || 0) + converted;
     });
-    // Turn the buckets into the array shape recharts expects.
-    return Object.keys(totalsByCategory).map(function (category) {
-        return { name: category, value: roundMoney(totalsByCategory[category]) };
+    // Turn the buckets into the array shape recharts expects, giving
+    // each slice a colour from the palette in order.
+    return Object.keys(totalsByCategory).map(function (category, index) {
+        const value = roundMoney(totalsByCategory[category]);
+        const color = chartColors[index % chartColors.length];
+        return { name: category, value, color };
     });
 }
 
@@ -91,14 +94,9 @@ function CategoryPieChart(props) {
                                     return entry.name + ': ' + entry.value;
                                 }}
                             >
-                                {chartData.map(function (entry, index) {
-                                    // One colour per slice, wrapping the list.
-                                    return (
-                                        <Cell
-                                            key={entry.name}
-                                            fill={chartColors[index % chartColors.length]}
-                                        />
-                                    );
+                                {/* Colour each slice from its own data. */}
+                                {chartData.map(function (entry) {
+                                    return <Cell key={entry.name} fill={entry.color} />;
                                 })}
                             </Pie>
                             <Tooltip />

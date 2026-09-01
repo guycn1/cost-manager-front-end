@@ -16,6 +16,21 @@ import {
 // The shared month / year / currency selector row.
 import ReportFilters from './ReportFilters.jsx';
 
+// One table row for a single cost item. The sum keeps its own original
+// currency; only the report total is converted.
+function renderCostRow(item, index) {
+    return (
+        <TableRow key={index}>
+            {/* Day, category, description, then sum and its currency. */}
+            <TableCell>{item.date.day}</TableCell>
+            <TableCell>{item.category}</TableCell>
+            <TableCell>{item.description}</TableCell>
+            <TableCell align="right">{item.sum}</TableCell>
+            <TableCell>{item.currency}</TableCell>
+        </TableRow>
+    );
+}
+
 function MonthlyReport(props) {
     const { database, dataVersion } = props;
 
@@ -71,6 +86,7 @@ function MonthlyReport(props) {
                                     <TableRow>
                                         <TableCell>Day</TableCell>
                                         <TableCell>Category</TableCell>
+                                        {/* Free text, then the amount. */}
                                         <TableCell>Description</TableCell>
                                         <TableCell align="right">Sum</TableCell>
                                         <TableCell>Currency</TableCell>
@@ -78,18 +94,7 @@ function MonthlyReport(props) {
                                 </TableHead>
                                 {/* One row per cost item in the report. */}
                                 <TableBody>
-                                    {report.costs.map(function (item, index) {
-                                        // Each row keeps its own original currency.
-                                        return (
-                                            <TableRow key={index}>
-                                                <TableCell>{item.date.day}</TableCell>
-                                                <TableCell>{item.category}</TableCell>
-                                                <TableCell>{item.description}</TableCell>
-                                                <TableCell align="right">{item.sum}</TableCell>
-                                                <TableCell>{item.currency}</TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
+                                    {report.costs.map(renderCostRow)}
                                 </TableBody>
                             </Table>
                         </TableContainer>

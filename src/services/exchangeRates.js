@@ -48,9 +48,9 @@ function isValidRatesObject(rates) {
     if (!rates || typeof rates !== 'object') {
         return false;
     }
-    // Every supported currency has to be present as a finite number.
+    // Number.isFinite is false for missing keys and non numbers alike.
     return supportedCurrencies.every(function (currency) {
-        return typeof rates[currency] === 'number' && Number.isFinite(rates[currency]);
+        return Number.isFinite(rates[currency]);
     });
 }
 

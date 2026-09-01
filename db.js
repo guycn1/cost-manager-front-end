@@ -95,7 +95,7 @@
         // Category and description are free text, so just trim them.
         const category = String(cost.category || '').trim();
         const description = String(cost.description || '').trim();
-        return { sum: sum, currency: currency, category: category, description: description };
+        return { sum, currency, category, description };
     }
 
     // Create the object that represents one open database. Each call
@@ -185,13 +185,7 @@
         }
 
         // The public surface of one open database.
-        return {
-            databaseName: databaseName,
-            databaseVersion: databaseVersion,
-            addCost: addCost,
-            getReport: getReport,
-            setExchangeRates: setExchangeRates
-        };
+        return { databaseName, databaseVersion, addCost, getReport, setExchangeRates };
     }
 
     // The single entry point of the library.
@@ -209,7 +203,7 @@
     // This is a property assignment on the global object, so every
     // binding in this file stays a const or a let.
     globalObject.db = {
-        openCostsDB: openCostsDB,
+        openCostsDB,
         // Let a test page override the rates before calling getReport.
         setExchangeRates: function (rates) {
             if (rates && typeof rates === 'object') {

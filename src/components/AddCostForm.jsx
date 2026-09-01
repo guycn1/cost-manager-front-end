@@ -106,7 +106,9 @@ function AddCostForm(props) {
                             {/* One menu entry per supported currency. */}
                             {supportedCurrencies.map(function (currency) {
                                 return (
-                                    <MenuItem key={currency} value={currency}>{currency}</MenuItem>
+                                    <MenuItem key={currency} value={currency}>
+                                        {currency}
+                                    </MenuItem>
                                 );
                             })}
                         </TextField>

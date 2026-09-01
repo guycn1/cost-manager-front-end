@@ -202,4 +202,9 @@ export function openCostsDB(databaseName, databaseVersion) {
 }
 
 // The default export mirrors the shape of the global "db" object.
-export default { openCostsDB, setExchangeRates, getExchangeRates, supportedCurrencies };
+export default {
+    openCostsDB,
+    setExchangeRates,
+    getExchangeRates,
+    supportedCurrencies
+};

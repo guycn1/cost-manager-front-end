@@ -14,8 +14,27 @@ import { MenuItem, Stack, TextField } from '@mui/material';
 import { supportedCurrencies } from '../db.js';
 import { monthNames, buildYearOptions } from '../constants.js';
 
-// The selectable years are the same for every screen.
-const yearOptions = buildYearOptions();
+// Static { value, label } option lists, one per dropdown.
+const monthItems = monthNames.map(function (name, index) {
+    return { value: index + 1, label: name };
+});
+const yearItems = buildYearOptions().map(function (year) {
+    return { value: year, label: String(year) };
+});
+const currencyItems = supportedCurrencies.map(function (code) {
+    return { value: code, label: code };
+});
+
+// Render one <MenuItem> for each { value, label } entry.
+function renderMenuItems(items) {
+    return items.map(function (item) {
+        return (
+            <MenuItem key={item.value} value={item.value}>
+                {item.label}
+            </MenuItem>
+        );
+    });
+}
 
 function ReportFilters(props) {
     // "showMonth" is false on the yearly bar chart, which has no month.
@@ -29,57 +48,33 @@ function ReportFilters(props) {
             {/* Month picker, only when the parent asks for it. */}
             {showMonth ? (
                 <TextField
-                    select
-                    label="Month"
-                    value={month}
+                    select label="Month" value={month} sx={{ minWidth: 140 }}
                     onChange={function (event) {
                         onMonthChange(Number(event.target.value));
                     }}
-                    sx={{ minWidth: 140 }}
                 >
-                    {/* Label is the month name, value is the number 1-12. */}
-                    {monthNames.map(function (name, index) {
-                        return (
-                            <MenuItem key={name} value={index + 1}>{name}</MenuItem>
-                        );
-                    })}
+                    {renderMenuItems(monthItems)}
                 </TextField>
             ) : undefined}
 
-            {/* Year picker, one option per selectable year. */}
+            {/* Year picker; the value is stored as a number. */}
             <TextField
-                select
-                label="Year"
-                value={year}
+                select label="Year" value={year} sx={{ minWidth: 120 }}
                 onChange={function (event) {
                     onYearChange(Number(event.target.value));
                 }}
-                sx={{ minWidth: 120 }}
             >
-                {/* One entry per year in the range. */}
-                {yearOptions.map(function (option) {
-                    return (
-                        <MenuItem key={option} value={option}>{option}</MenuItem>
-                    );
-                })}
+                {renderMenuItems(yearItems)}
             </TextField>
 
-            {/* Currency picker, one option per supported currency. */}
+            {/* Currency picker; the value is the currency symbol. */}
             <TextField
-                select
-                label="Currency"
-                value={currency}
+                select label="Currency" value={currency} sx={{ minWidth: 120 }}
                 onChange={function (event) {
                     onCurrencyChange(event.target.value);
                 }}
-                sx={{ minWidth: 120 }}
             >
-                {/* One entry per supported currency. */}
-                {supportedCurrencies.map(function (option) {
-                    return (
-                        <MenuItem key={option} value={option}>{option}</MenuItem>
-                    );
-                })}
+                {renderMenuItems(currencyItems)}
             </TextField>
         </Stack>
     );
