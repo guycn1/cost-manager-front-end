@@ -10,6 +10,8 @@
     <script>
         function test() {
             try {
+                // Start from an empty store so re-running this page is reproducible.
+                localStorage.removeItem("costsdb:costsdb:v1");
                 const ob = db.openCostsDB("costsdb", 1);
                 const result1 = ob.addCost({ sum: 200, currency: "USD", category: "FOOD", description: "pizza" });
                 const result2 = ob.addCost({ sum: 400, currency: "USD", category: "CAR", description: "fuel" });
