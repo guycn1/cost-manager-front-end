@@ -20,6 +20,7 @@ export default function ScreenCard(props) {
                 <Typography variant="h5" gutterBottom>
                     {title}
                 </Typography>
+                {/* Then whatever the screen passes as its body. */}
                 {children}
             </CardContent>
         </Card>

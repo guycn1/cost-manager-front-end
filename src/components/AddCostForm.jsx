@@ -77,6 +77,7 @@ export default function AddCostForm(props) {
 
         // db.js stamps the current date onto the stored item.
         try {
+            // Pass the validated, trimmed values straight through.
             database.addCost({
                 sum: sumValue,
                 currency: form.currency,
@@ -119,6 +120,7 @@ export default function AddCostForm(props) {
                         freeSolo options={defaultCategories}
                         inputValue={form.category} onInputChange={onCategory}
                         renderInput={params => (
+                            /* Reuse the MUI text field for the input box. */
                             <TextField {...params} label="Category" required />
                         )}
                     />
@@ -138,6 +140,7 @@ export default function AddCostForm(props) {
                     <Button type="submit" variant="contained" size="large">
                         Add cost
                     </Button>
+                    {/* End of the form fields. */}
                 </Stack>
             </Box>
         </ScreenCard>

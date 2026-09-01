@@ -49,6 +49,7 @@ function readCosts(storageKey) {
     // A corrupted entry should not break the whole application.
     try {
         const parsedValue = JSON.parse(rawValue);
+        // Anything that is not an array is treated as empty.
         return Array.isArray(parsedValue) ? parsedValue : [];
     } catch (parseError) {
         return [];
@@ -129,10 +130,8 @@ function createDatabase(databaseName, databaseVersion) {
         writeCosts(storageKey, costs);
         // Echo back exactly the four properties the spec asks for.
         return {
-            sum: record.sum,
-            currency: record.currency,
-            category: record.category,
-            description: record.description
+            sum: record.sum, currency: record.currency,
+            category: record.category, description: record.description
         };
     }
 
@@ -173,8 +172,7 @@ function createDatabase(databaseName, databaseVersion) {
 
         // The shape below matches the report described in the spec.
         return {
-            year: targetYear,
-            month: targetMonth,
+            year: targetYear, month: targetMonth,
             costs: reportCosts,
             total: { currency: targetCurrency, sum: roundMoney(runningTotal) }
         };

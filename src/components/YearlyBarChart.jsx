@@ -21,6 +21,7 @@ function buildMonthlyTotals(database, currency, year) {
     const rows = [];
     // One row per month: a three letter label and the converted total.
     for (let month = 1; month <= 12; month += 1) {
+        // Ask db.js for that month's report and keep its total.
         const report = database.getReport(currency, year, month);
         const label = monthNames[month - 1].slice(0, 3);
         rows.push({ month: label, total: report.total.sum });
@@ -60,6 +61,7 @@ export default function YearlyBarChart(props) {
             {hasData ? (
                 <MonthlyBars rows={rows} currency={currency} />
             ) : (
+                /* Nothing to plot for this year. */
                 <EmptyNote>No cost items were recorded for this year.</EmptyNote>
             )}
         </ScreenCard>

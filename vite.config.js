@@ -9,9 +9,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// The dev server opens a browser on a fixed port for convenience.
+// A relative base keeps the built bundle working from a sub path.
 export default defineConfig({
     base: './',
+    // React support, then a dev server that opens on a fixed port.
     plugins: [react()],
     server: {
         port: 5173,

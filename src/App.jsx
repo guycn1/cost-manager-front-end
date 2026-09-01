@@ -77,6 +77,7 @@ export default function App() {
             .then(result => {
                 // The bundled copy means the network fetch failed.
                 if (result.source === bundledRatesUrl) {
+                    // Tell the user the on-screen rates may be stale.
                     setNotice({
                         severity: 'warning',
                         text: 'The rates server could not be reached. '
@@ -116,6 +117,7 @@ export default function App() {
     const screens = [
         <AddCostForm database={database} onCostAdded={handleDataChanged} />,
         <MonthlyReport database={database} dataVersion={dataVersion} />,
+        // Charts and settings take the same live database handle.
         <CategoryPieChart database={database} dataVersion={dataVersion} />,
         <YearlyBarChart database={database} dataVersion={dataVersion} />,
         <SettingsPanel onRatesReloaded={handleRatesReloaded} />

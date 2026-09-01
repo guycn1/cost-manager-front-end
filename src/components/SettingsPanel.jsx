@@ -91,8 +91,8 @@ export default function SettingsPanel(props) {
                     placeholder={defaultRatesUrl}
                     onChange={event => setUrl(event.target.value)}
                 />
-
                 {/* Result of the last save or reset. */}
+
                 {status ? (
                     <Alert severity={status.severity}>{status.text}</Alert>
                 ) : undefined}
@@ -106,6 +106,7 @@ export default function SettingsPanel(props) {
                     <Button variant="outlined" onClick={handleReset}>
                         Use default
                     </Button>
+                    {/* Both buttons reload the rates once they finish. */}
                 </Stack>
             </Stack>
         </ScreenCard>

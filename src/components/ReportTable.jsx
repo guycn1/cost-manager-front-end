@@ -46,6 +46,7 @@ export default function ReportTable(props) {
                                 <TableCell>{item.currency}</TableCell>
                             </TableRow>
                         ))}
+                    {/* End of the per item rows. */}
                     </TableBody>
                 </Table>
             </TableContainer>

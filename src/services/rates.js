@@ -35,6 +35,7 @@ export function readStoredRatesUrl() {
 
 // Persist the user supplied URL, or clear it when the field is empty.
 export function setRatesUrl(url) {
+    // A real value is stored trimmed; anything else clears the entry.
     if (url && url.trim()) {
         window.localStorage.setItem(ratesUrlStorageKey, url.trim());
     } else {
