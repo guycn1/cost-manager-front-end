@@ -15,7 +15,9 @@ import {
 // The database library, shared constants and the rates service.
 import { openCostsDB } from './db.js';
 import { databaseName, databaseVersion } from './constants.js';
-import { loadExchangeRates, remoteRatesUrl } from './services/rates.js';
+import {
+    loadExchangeRates, readStoredRatesUrl, bundledRatesUrl
+} from './services/rates.js';
 
 // One screen component per tab.
 import AddCostForm from './components/AddCostForm.jsx';
@@ -29,6 +31,9 @@ const tabLabels = [
     'Add Cost', 'Monthly Report', 'Category Pie Chart',
     'Yearly Bar Chart', 'Settings'
 ];
+
+// How often to re-check the configured rates URL, in milliseconds.
+const ratesRefreshInterval = 10 * 60 * 1000;
 
 // The root component: opens the database, loads the rates and hosts the
 // tab bar that switches between the five screens.
@@ -54,15 +59,24 @@ export default function App() {
     // Clear the current message.
     const clearNotice = useCallback(() => setNotice(null), []);
 
-    // Pull the exchange rates from the server as soon as the app loads.
+    // Load the rates from the URL saved on the settings screen, or the
+    // default source when none is set, and let the report screens
+    // recompute once the fresh values are in memory.
+    const loadRates = useCallback(() => {
+        return loadExchangeRates(readStoredRatesUrl()).then(result => {
+            bumpDataVersion();
+            return result;
+        });
+    }, [bumpDataVersion]);
+
+    // Fetch once on startup, then re-check the same URL on a timer so a
+    // value entered on the settings screen is picked up over time. Only
+    // the first load reports a problem to the user.
     useEffect(() => {
-        loadExchangeRates()
+        loadRates()
             .then(result => {
-                bumpDataVersion();
-                // A source other than the remote one means the bundled
-                // copy of the rates was used as a fallback.
-                if (result.source !== remoteRatesUrl) {
-                    // Warn that the rates on screen may be stale.
+                // The bundled copy means the network fetch failed.
+                if (result.source === bundledRatesUrl) {
                     setNotice({
                         severity: 'warning',
                         text: 'The rates server could not be reached. '
@@ -70,14 +84,19 @@ export default function App() {
                     });
                 }
             })
+            // A configured URL that fails to load has no fallback.
             .catch(error => {
-                // Both the remote server and the bundled copy failed.
                 setNotice({
                     severity: 'error',
                     text: 'Could not load exchange rates: ' + error.message
                 });
             });
-    }, [bumpDataVersion]);
+        // Background refreshes stay silent; a failed one is ignored.
+        const timer = setInterval(() => {
+            loadRates().catch(() => undefined);
+        }, ratesRefreshInterval);
+        return () => clearInterval(timer);
+    }, [loadRates]);
 
     // Called by a child screen after it changes the stored data.
     const handleDataChanged = useCallback(message => {
