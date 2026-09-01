@@ -1,34 +1,41 @@
-// MonthlyReport.jsx
-//
-// Screen that shows a detailed report for a chosen month and year in a
-// currency the user selects. The report is produced by db.js.
+/*
+ * MonthlyReport.jsx
+ *
+ * Screen that shows a detailed report for a chosen month and year in a
+ * currency the user selects. The report itself is produced by db.js;
+ * this component only renders it as a table plus a converted total.
+ */
 
+// React and the MUI table primitives.
 import React, { useEffect, useState } from 'react';
 import {
-    Box, Card, CardContent, MenuItem, Paper, Stack, Table, TableBody,
-    TableCell, TableContainer, TableHead, TableRow, TextField, Typography
+    Box, Card, CardContent, Paper, Table, TableBody, TableCell,
+    TableContainer, TableHead, TableRow, Typography
 } from '@mui/material';
 
-import { SUPPORTED_CURRENCIES } from '../db.js';
-import { MONTH_NAMES, buildYearOptions } from '../constants.js';
-
-const YEAR_OPTIONS = buildYearOptions();
+// The shared month / year / currency selector row.
+import ReportFilters from './ReportFilters.jsx';
 
 function MonthlyReport(props) {
     const { database, dataVersion } = props;
 
+    // The selectors default to the current month and year in USD.
     const now = new Date();
     const [year, setYear] = useState(now.getFullYear());
     const [month, setMonth] = useState(now.getMonth() + 1);
     const [currency, setCurrency] = useState('USD');
     const [report, setReport] = useState(null);
 
-    // Rebuild the report whenever a selection or the stored data changes.
+    // Rebuild the report when a selector or the stored data changes.
     useEffect(function () {
         const result = database.getReport(currency, year, month);
         setReport(result);
     }, [database, currency, year, month, dataVersion]);
 
+    // Whether the current report has any cost items to show.
+    const hasCosts = Boolean(report && report.costs.length > 0);
+
+    // Card with the filter row, then the table and total or an empty note.
     return (
         <Card>
             <CardContent>
@@ -36,72 +43,30 @@ function MonthlyReport(props) {
                     Monthly report
                 </Typography>
 
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
-                    <TextField
-                        select
-                        label="Month"
-                        value={month}
-                        onChange={function (event) {
-                            setMonth(Number(event.target.value));
-                        }}
-                        sx={{ minWidth: 140 }}
-                    >
-                        {MONTH_NAMES.map(function (name, index) {
-                            return (
-                                <MenuItem key={name} value={index + 1}>
-                                    {name}
-                                </MenuItem>
-                            );
-                        })}
-                    </TextField>
+                {/* Month, year and currency selectors. */}
+                <ReportFilters
+                    showMonth
+                    month={month}
+                    onMonthChange={setMonth}
+                    year={year}
+                    onYearChange={setYear}
+                    currency={currency}
+                    onCurrencyChange={setCurrency}
+                />
 
-                    <TextField
-                        select
-                        label="Year"
-                        value={year}
-                        onChange={function (event) {
-                            setYear(Number(event.target.value));
-                        }}
-                        sx={{ minWidth: 120 }}
-                    >
-                        {YEAR_OPTIONS.map(function (option) {
-                            return (
-                                <MenuItem key={option} value={option}>
-                                    {option}
-                                </MenuItem>
-                            );
-                        })}
-                    </TextField>
-
-                    <TextField
-                        select
-                        label="Currency"
-                        value={currency}
-                        onChange={function (event) {
-                            setCurrency(event.target.value);
-                        }}
-                        sx={{ minWidth: 120 }}
-                    >
-                        {SUPPORTED_CURRENCIES.map(function (option) {
-                            return (
-                                <MenuItem key={option} value={option}>
-                                    {option}
-                                </MenuItem>
-                            );
-                        })}
-                    </TextField>
-                </Stack>
-
-                {report && report.costs.length === 0 ? (
+                {/* Empty state message. */}
+                {report && !hasCosts ? (
                     <Typography color="text.secondary">
                         No cost items were recorded for this month.
                     </Typography>
                 ) : undefined}
 
-                {report && report.costs.length > 0 ? (
+                {/* Table of items plus the converted total. */}
+                {hasCosts ? (
                     <Box>
                         <TableContainer component={Paper} variant="outlined">
                             <Table size="small">
+                                {/* Column headings. */}
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Day</TableCell>
@@ -111,16 +76,16 @@ function MonthlyReport(props) {
                                         <TableCell>Currency</TableCell>
                                     </TableRow>
                                 </TableHead>
+                                {/* One row per cost item in the report. */}
                                 <TableBody>
                                     {report.costs.map(function (item, index) {
+                                        // Each row keeps its own original currency.
                                         return (
                                             <TableRow key={index}>
                                                 <TableCell>{item.date.day}</TableCell>
                                                 <TableCell>{item.category}</TableCell>
                                                 <TableCell>{item.description}</TableCell>
-                                                <TableCell align="right">
-                                                    {item.sum}
-                                                </TableCell>
+                                                <TableCell align="right">{item.sum}</TableCell>
                                                 <TableCell>{item.currency}</TableCell>
                                             </TableRow>
                                         );
@@ -129,6 +94,7 @@ function MonthlyReport(props) {
                             </Table>
                         </TableContainer>
 
+                        {/* The month total, converted to the chosen currency. */}
                         <Typography variant="h6" sx={{ mt: 2 }}>
                             Total: {report.total.sum} {report.total.currency}
                         </Typography>

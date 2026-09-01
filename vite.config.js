@@ -1,9 +1,15 @@
-// Build configuration for the cost manager front end.
-// A relative base keeps the bundle working when it is served from
-// a sub path on the hosting provider.
+/*
+ * vite.config.js
+ *
+ * Build configuration for the cost manager front end. A relative base
+ * keeps the bundle working when it is served from a sub path on the
+ * hosting provider.
+ */
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// The dev server opens a browser on a fixed port for convenience.
 export default defineConfig({
     base: './',
     plugins: [react()],

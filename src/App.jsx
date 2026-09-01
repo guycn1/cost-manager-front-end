@@ -1,18 +1,23 @@
-// App.jsx
-//
-// Top level component. It opens the database once, loads the currency
-// exchange rates from the server, and switches between the five screens
-// of the application through a tab bar.
+/*
+ * App.jsx
+ *
+ * Top level component. It opens the database once, loads the currency
+ * exchange rates from the server, and switches between the five
+ * screens of the application through a tab bar.
+ */
 
+// React and MUI.
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     AppBar, Alert, Box, Container, Snackbar, Tab, Tabs, Toolbar, Typography
 } from '@mui/material';
 
+// The database library, shared constants and the rates service.
 import { openCostsDB } from './db.js';
-import { DATABASE_NAME, DATABASE_VERSION } from './constants.js';
-import { loadExchangeRates, REMOTE_RATES_URL } from './services/exchangeRates.js';
+import { databaseName, databaseVersion } from './constants.js';
+import { loadExchangeRates, remoteRatesUrl } from './services/exchangeRates.js';
 
+// One screen component per tab.
 import AddCostForm from './components/AddCostForm.jsx';
 import MonthlyReport from './components/MonthlyReport.jsx';
 import CategoryPieChart from './components/CategoryPieChart.jsx';
@@ -21,28 +26,31 @@ import SettingsPanel from './components/SettingsPanel.jsx';
 
 function App() {
     // The open database wrapper is stable for the whole session.
-    const database = useMemo(
-        function () {
-            return openCostsDB(DATABASE_NAME, DATABASE_VERSION);
-        },
-        []
-    );
+    const database = useMemo(function () {
+        return openCostsDB(databaseName, databaseVersion);
+    }, []);
 
+    // Which tab is visible, and a counter that forces the report and
+    // chart screens to reload after the stored data changes.
     const [activeTab, setActiveTab] = useState(0);
-    // Bumping this counter tells the report and chart screens to reload.
     const [dataVersion, setDataVersion] = useState(0);
     const [notice, setNotice] = useState(null);
 
-    // Pull the exchange rates from the server as soon as the app starts.
+    // Bump the reload counter.
+    const bumpDataVersion = useCallback(function () {
+        setDataVersion(function (value) {
+            return value + 1;
+        });
+    }, []);
+
+    // Pull the exchange rates from the server as soon as the app loads.
     useEffect(function () {
         loadExchangeRates()
             .then(function (result) {
-                setDataVersion(function (value) {
-                    return value + 1;
-                });
-                // Tell the user when the remote server could not be reached
-                // and the bundled copy of the rates was used instead.
-                if (result.source !== REMOTE_RATES_URL) {
+                bumpDataVersion();
+                // Warn when the remote server could not be reached and
+                // the bundled copy of the rates was used instead.
+                if (result.source !== remoteRatesUrl) {
                     setNotice({
                         severity: 'warning',
                         text: 'The rates server could not be reached. '
@@ -51,39 +59,54 @@ function App() {
                 }
             })
             .catch(function (error) {
+                // Both the remote server and the bundled copy failed.
                 setNotice({
                     severity: 'error',
                     text: 'Could not load exchange rates: ' + error.message
                 });
             });
-    }, []);
+    }, [bumpDataVersion]);
 
-    // Called by child screens after they change the stored data.
+    // Called by a child screen after it changes the stored data.
     const handleDataChanged = useCallback(function (message) {
-        setDataVersion(function (value) {
-            return value + 1;
-        });
+        bumpDataVersion();
         if (message) {
             setNotice({ severity: 'success', text: message });
         }
-    }, []);
+    }, [bumpDataVersion]);
 
-    // Re-fetch rates after the user saves a new URL in the settings.
+    // Called by the settings screen after new rates are loaded.
     const handleRatesReloaded = useCallback(function (message) {
-        setDataVersion(function (value) {
-            return value + 1;
-        });
+        bumpDataVersion();
         setNotice({ severity: 'success', text: message });
-    }, []);
+    }, [bumpDataVersion]);
 
+    // The label shown on each tab.
+    const tabLabels = [
+        'Add Cost', 'Monthly Report', 'Category Pie Chart',
+        'Yearly Bar Chart', 'Settings'
+    ];
+    // The screen for each tab, in the same order as the labels above.
+    const screens = [
+        <AddCostForm database={database} onCostAdded={handleDataChanged} />,
+        <MonthlyReport database={database} dataVersion={dataVersion} />,
+        <CategoryPieChart database={database} dataVersion={dataVersion} />,
+        <YearlyBarChart database={database} dataVersion={dataVersion} />,
+        <SettingsPanel onRatesReloaded={handleRatesReloaded} />
+    ];
+
+    // Title bar, tab strip, the active screen and the message bar.
     return (
         <Box>
             <AppBar position="static">
+                {/* Title bar. */}
                 <Toolbar>
                     <Typography variant="h6" component="h1">
                         Cost Manager
                     </Typography>
                 </Toolbar>
+
+                {/* Tab strip: one tab per screen, built from tabLabels. */}
                 <Tabs
                     value={activeTab}
                     onChange={function (event, value) {
@@ -93,32 +116,19 @@ function App() {
                     indicatorColor="secondary"
                     variant="scrollable"
                 >
-                    <Tab label="Add Cost" />
-                    <Tab label="Monthly Report" />
-                    <Tab label="Category Pie Chart" />
-                    <Tab label="Yearly Bar Chart" />
-                    <Tab label="Settings" />
+                    {/* One <Tab> per label; its index is the tab value. */}
+                    {tabLabels.map(function (label) {
+                        return <Tab key={label} label={label} />;
+                    })}
                 </Tabs>
             </AppBar>
 
+            {/* Only the screen for the active tab is rendered. */}
             <Container maxWidth="md" sx={{ py: 4 }}>
-                {activeTab === 0 && (
-                    <AddCostForm database={database} onCostAdded={handleDataChanged} />
-                )}
-                {activeTab === 1 && (
-                    <MonthlyReport database={database} dataVersion={dataVersion} />
-                )}
-                {activeTab === 2 && (
-                    <CategoryPieChart database={database} dataVersion={dataVersion} />
-                )}
-                {activeTab === 3 && (
-                    <YearlyBarChart database={database} dataVersion={dataVersion} />
-                )}
-                {activeTab === 4 && (
-                    <SettingsPanel onRatesReloaded={handleRatesReloaded} />
-                )}
+                {screens[activeTab]}
             </Container>
 
+            {/* Transient success, warning and error messages. */}
             <Snackbar
                 open={Boolean(notice)}
                 autoHideDuration={5000}
@@ -127,6 +137,7 @@ function App() {
                 }}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
+                {/* The coloured alert, shown only while a notice is set. */}
                 {notice ? (
                     <Alert
                         severity={notice.severity}

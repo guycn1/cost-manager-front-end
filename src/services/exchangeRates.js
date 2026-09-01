@@ -1,63 +1,67 @@
-// exchangeRates.js
-//
-// Retrieves the currency exchange rates from a server using the Fetch API
-// and feeds them into the db.js library.
-//
-// The primary source is a static JSON document hosted separately from the
-// application, on GitHub Pages. The application always fetches its rates
-// over the network, including when the user has not entered a custom URL
-// in the settings screen. A copy of the JSON is bundled with the built
-// site and used only as a last resort if the network request fails.
+/*
+ * exchangeRates.js
+ *
+ * Retrieves the currency exchange rates from a server with the Fetch
+ * API and feeds them into the db.js library.
+ *
+ * The primary source is a static JSON document hosted separately from
+ * the application, on GitHub Pages. The application always fetches its
+ * rates over the network, including when the user has not entered a
+ * custom URL in the settings screen. A copy of the JSON is bundled
+ * with the built site and used only if the network request fails.
+ */
 
-import { setExchangeRates, SUPPORTED_CURRENCIES } from '../db.js';
+import { setExchangeRates, supportedCurrencies } from '../db.js';
 
-// Local storage key that holds the user supplied rates URL.
-const RATES_URL_STORAGE_KEY = 'costsdb:ratesUrl';
+// Local storage key that holds the URL the user configured.
+const ratesUrlStorageKey = 'costsdb:ratesUrl';
 
-// The remote server that provides the rates. This is a static JSON file
-// deployed on GitHub Pages; it answers with "Access-Control-Allow-Origin: *"
-// so it can be read from any origin.
-export const REMOTE_RATES_URL =
+// The remote server that provides the rates. This static JSON file is
+// deployed on GitHub Pages, which answers with the header
+// "Access-Control-Allow-Origin: *", so it can be read from any origin.
+export const remoteRatesUrl =
     'https://guycn1.github.io/cost-manager-front-end/exchange-rates.json';
 
-// Offline safety net: the same JSON, bundled with the built application.
-export const BUNDLED_RATES_URL = new URL('exchange-rates.json', document.baseURI).href;
+// Offline safety net: the same JSON, bundled with the built site.
+export const bundledRatesUrl = new URL('exchange-rates.json', document.baseURI).href;
 
 // The source used when the user has not configured anything.
-export const DEFAULT_RATES_URL = REMOTE_RATES_URL;
+export const defaultRatesUrl = remoteRatesUrl;
 
-// Read the URL the user configured, or fall back to the remote default.
-export function getRatesUrl() {
-    const storedUrl = window.localStorage.getItem(RATES_URL_STORAGE_KEY);
-    return storedUrl && storedUrl.trim() ? storedUrl.trim() : DEFAULT_RATES_URL;
+// Read the URL the user configured, or an empty string when there is none.
+export function readStoredRatesUrl() {
+    return window.localStorage.getItem(ratesUrlStorageKey) || '';
 }
 
-// Persist (or clear) the user supplied rates URL.
+// Persist the user supplied URL, or clear it when the field is empty.
 export function setRatesUrl(url) {
     if (url && url.trim()) {
-        window.localStorage.setItem(RATES_URL_STORAGE_KEY, url.trim());
+        window.localStorage.setItem(ratesUrlStorageKey, url.trim());
     } else {
-        window.localStorage.removeItem(RATES_URL_STORAGE_KEY);
+        window.localStorage.removeItem(ratesUrlStorageKey);
     }
 }
 
-// Make sure the object returned by the server holds a numeric rate for
+// Check that the object from the server holds a numeric rate for
 // every currency the application supports.
 function isValidRatesObject(rates) {
     if (!rates || typeof rates !== 'object') {
         return false;
     }
-    return SUPPORTED_CURRENCIES.every(function (currency) {
-        return typeof rates[currency] === 'number' && isFinite(rates[currency]);
+    // Every supported currency has to be present as a finite number.
+    return supportedCurrencies.every(function (currency) {
+        return typeof rates[currency] === 'number' && Number.isFinite(rates[currency]);
     });
 }
 
 // Fetch a rates JSON from a single URL and validate its shape.
 async function fetchRatesFrom(url) {
     const response = await fetch(url, { cache: 'no-store' });
+    // A non success status is treated as a failure.
     if (!response.ok) {
         throw new Error('the rates server answered with status ' + response.status);
     }
+    // The body has to be a JSON object with all the currencies.
     const rates = await response.json();
     if (!isValidRatesObject(rates)) {
         throw new Error('the rates JSON is missing one of the supported currencies');
@@ -65,28 +69,30 @@ async function fetchRatesFrom(url) {
     return rates;
 }
 
-// Load the rates and push them into db.js.
-//
-// When an explicit URL is given (the user saved one in the settings) it
-// is used as is and any failure is reported to the caller. Otherwise the
-// remote server is tried first and the bundled copy is the fallback.
+// Load the rates and push them into db.js. When an explicit URL is
+// given (the user saved one in the settings) it is used on its own and
+// any failure is reported to the caller. Otherwise the remote server is
+// tried first and the bundled copy is the fallback. The return value
+// names the source that was actually used.
 export async function loadExchangeRates(url) {
     const explicitUrl = url && url.trim() ? url.trim() : null;
 
+    // A user supplied URL is used on its own, with no fallback.
     if (explicitUrl) {
         const rates = await fetchRatesFrom(explicitUrl);
         setExchangeRates(rates);
         return { rates: rates, source: explicitUrl };
     }
 
-    // No user URL: fetch from the remote server, then the bundled file.
+    // No user URL: try the remote server first.
     try {
-        const rates = await fetchRatesFrom(REMOTE_RATES_URL);
+        const rates = await fetchRatesFrom(remoteRatesUrl);
         setExchangeRates(rates);
-        return { rates: rates, source: REMOTE_RATES_URL };
+        return { rates: rates, source: remoteRatesUrl };
     } catch (remoteError) {
-        const rates = await fetchRatesFrom(BUNDLED_RATES_URL);
+        // The remote server failed, so fall back to the bundled copy.
+        const rates = await fetchRatesFrom(bundledRatesUrl);
         setExchangeRates(rates);
-        return { rates: rates, source: BUNDLED_RATES_URL, remoteError: remoteError };
+        return { rates: rates, source: bundledRatesUrl, remoteError: remoteError };
     }
 }
