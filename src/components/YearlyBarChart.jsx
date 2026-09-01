@@ -6,16 +6,14 @@
  * picks. Each bar is one call to db.js getReport.
  */
 
-// React, MUI and the recharts bar primitives.
+// React and hooks.
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-    Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis
-} from 'recharts';
 
-// Shared screen frame, filter row, empty note and month labels.
+// Shared screen frame, filter row, empty note, the bars and month labels.
 import ScreenCard from './ScreenCard.jsx';
 import ReportFilters from './ReportFilters.jsx';
 import EmptyNote from './EmptyNote.jsx';
+import MonthlyBars from './MonthlyBars.jsx';
 import { monthNames } from '../constants.js';
 
 // Ask db.js for a report per month and collect the twelve totals.
@@ -50,7 +48,7 @@ export default function YearlyBarChart(props) {
         [rows]
     );
 
-    // The filter row, then the chart or the empty note.
+    // The filter row, then the chart or an empty note.
     return (
         <ScreenCard title="Costs by month">
             {/* Year and currency selectors, no month here. */}
@@ -58,24 +56,11 @@ export default function YearlyBarChart(props) {
                 showMonth={false} year={year} onYearChange={setYear}
                 currency={currency} onCurrencyChange={setCurrency}
             />
-
-            {/* An empty note when the year has nothing, else the chart. */}
-            {!hasData ? (
-                <EmptyNote>No cost items were recorded for this year.</EmptyNote>
+            {/* The chart, or a note when the year has nothing. */}
+            {hasData ? (
+                <MonthlyBars rows={rows} currency={currency} />
             ) : (
-                <ResponsiveContainer width="100%" height={360}>
-                    {/* Grid, the two axes, the tooltip and one bar per month. */}
-                    <BarChart data={rows}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar
-                            dataKey="total" fill="#1976d2"
-                            name={'Total in ' + currency}
-                        />
-                    </BarChart>
-                </ResponsiveContainer>
+                <EmptyNote>No cost items were recorded for this year.</EmptyNote>
             )}
         </ScreenCard>
     );

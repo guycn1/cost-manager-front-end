@@ -102,6 +102,13 @@ export default function App() {
         <SettingsPanel onRatesReloaded={handleRatesReloaded} />
     ];
 
+    // The alert to drop into the Snackbar, or nothing when idle.
+    const alert = notice ? (
+        <Alert severity={notice.severity} onClose={clearNotice}>
+            {notice.text}
+        </Alert>
+    ) : undefined;
+
     // Title bar and tab strip, then the active screen, then the message.
     return (
         <Box>
@@ -120,6 +127,7 @@ export default function App() {
                     textColor="inherit" indicatorColor="secondary"
                     variant="scrollable"
                 >
+                    {/* One <Tab> per entry in the label list. */}
                     {tabLabels.map(label => <Tab key={label} label={label} />)}
                 </Tabs>
             </AppBar>
@@ -134,12 +142,8 @@ export default function App() {
                 open={Boolean(notice)} autoHideDuration={5000} onClose={clearNotice}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
-                {/* The coloured alert, only while a message is set. */}
-                {notice ? (
-                    <Alert severity={notice.severity} onClose={clearNotice}>
-                        {notice.text}
-                    </Alert>
-                ) : undefined}
+                {/* The alert built above, shown only while a notice is set. */}
+                {alert}
             </Snackbar>
         </Box>
     );

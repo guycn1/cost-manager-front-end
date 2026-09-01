@@ -6,16 +6,14 @@
  * picks. Every sum is converted before the slices are added up.
  */
 
-// React, MUI and the recharts pie primitives.
+// React and hooks.
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-    Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip
-} from 'recharts';
 
-// Shared screen frame, filter row, empty note and helpers.
+// Shared screen frame, filter row, empty note, the pie and helpers.
 import ScreenCard from './ScreenCard.jsx';
 import ReportFilters from './ReportFilters.jsx';
 import EmptyNote from './EmptyNote.jsx';
+import CategoryPie from './CategoryPie.jsx';
 import { convertAmount, roundMoney } from '../lib/convert.js';
 import { chartColors } from '../constants.js';
 
@@ -28,7 +26,7 @@ function buildCategoryTotals(reportCosts, currency) {
         const key = item.category || 'Uncategorised';
         totalsByCategory[key] = (totalsByCategory[key] || 0) + converted;
     });
-    // Turn the totals into the { name, value, colour } rows recharts wants.
+    // Turn the totals into the { name, value, colour } rows the pie wants.
     return Object.keys(totalsByCategory).map((category, index) => ({
         name: category,
         value: roundMoney(totalsByCategory[category]),
@@ -59,7 +57,7 @@ export default function CategoryPieChart(props) {
         [reportCosts, currency]
     );
 
-    // The filter row, then the pie or the empty note.
+    // The filter row, then the pie or an empty note.
     return (
         <ScreenCard title="Costs by category">
             {/* Month, year and currency selectors. */}
@@ -68,29 +66,10 @@ export default function CategoryPieChart(props) {
                 year={year} onYearChange={setYear}
                 currency={currency} onCurrencyChange={setCurrency}
             />
-
-            {/* An empty note when the month has nothing, else the pie. */}
+            {/* The pie, or a note when the month has nothing. */}
             {chartData.length === 0 ? (
                 <EmptyNote>No cost items were recorded for this month.</EmptyNote>
-            ) : (
-                <ResponsiveContainer width="100%" height={360}>
-                    <PieChart>
-                        {/* One labelled, coloured slice per category. */}
-                        <Pie
-                            data={chartData} dataKey="value" nameKey="name"
-                            outerRadius={130}
-                            label={entry => entry.name + ': ' + entry.value}
-                        >
-                            {chartData.map(entry => (
-                                <Cell key={entry.name} fill={entry.color} />
-                            ))}
-                        </Pie>
-                        {/* Hover tooltip and the category legend. */}
-                        <Tooltip />
-                        <Legend />
-                    </PieChart>
-                </ResponsiveContainer>
-            )}
+            ) : <CategoryPie data={chartData} />}
         </ScreenCard>
     );
 }

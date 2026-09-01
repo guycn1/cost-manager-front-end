@@ -43,6 +43,7 @@ export default function ReportFilters(props) {
                     select label="Month" value={month} sx={{ minWidth: 140 }}
                     onChange={event => onMonthChange(Number(event.target.value))}
                 >
+                    {/* Options 1-12, labelled with the month name. */}
                     {monthMenu}
                 </TextField>
             ) : undefined}
@@ -60,6 +61,7 @@ export default function ReportFilters(props) {
                 select label="Currency" value={currency} sx={{ minWidth: 120 }}
                 onChange={event => onCurrencyChange(event.target.value)}
             >
+                {/* One option per supported currency. */}
                 {currencyMenu}
             </TextField>
         </Stack>

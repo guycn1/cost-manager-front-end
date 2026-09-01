@@ -102,6 +102,7 @@ export default function SettingsPanel(props) {
                     <Button variant="contained" onClick={handleSave}>
                         Save and load
                     </Button>
+                    {/* Clears the field and reloads the default. */}
                     <Button variant="outlined" onClick={handleReset}>
                         Use default
                     </Button>
