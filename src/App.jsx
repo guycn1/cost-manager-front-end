@@ -122,7 +122,7 @@ export default function App() {
     ];
 
     // The alert to drop into the Snackbar, or nothing when idle.
-    const alert = notice ? (
+    const noticeAlert = notice ? (
         <Alert severity={notice.severity} onClose={clearNotice}>
             {notice.text}
         </Alert>
@@ -162,7 +162,7 @@ export default function App() {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
                 {/* The alert built above, shown only while a notice is set. */}
-                {alert}
+                {noticeAlert}
             </Snackbar>
         </Box>
     );
