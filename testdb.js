@@ -19,6 +19,7 @@ function test() {
         const second = {
             sum: 400, currency: 'USD', category: 'CAR', description: 'fuel'
         };
+        // Add both items and keep what each call returned.
         const firstResult = database.addCost(first);
         const secondResult = database.addCost(second);
         // The first two logs confirm the database and the first item.
