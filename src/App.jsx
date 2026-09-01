@@ -32,18 +32,20 @@ const tabLabels = [
 
 // The floating message bar at the bottom of the screen.
 function renderNotice(notice, onClose) {
-    // MUI's Snackbar needs a single child element.
+    // The Snackbar needs a single child, so build the alert (or
+    // undefined) first, then drop it in.
+    const alert = notice
+        ? <Alert severity={notice.severity} onClose={onClose}>{notice.text}</Alert>
+        : undefined;
+    // Auto-hide after five seconds; centred along the bottom edge.
+    const anchor = { vertical: 'bottom', horizontal: 'center' };
     return (
         <Snackbar
-            open={Boolean(notice)}
-            autoHideDuration={5000}
-            onClose={onClose}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            open={Boolean(notice)} autoHideDuration={5000}
+            onClose={onClose} anchorOrigin={anchor}
         >
-            {/* The coloured alert, only while a notice is set. */}
-            {notice
-                ? <Alert severity={notice.severity} onClose={onClose}>{notice.text}</Alert>
-                : undefined}
+            {/* The alert element, or nothing when there is no message. */}
+            {alert}
         </Snackbar>
     );
 }

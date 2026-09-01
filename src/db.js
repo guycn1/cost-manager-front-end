@@ -181,7 +181,10 @@ function createDatabase(databaseName, databaseVersion) {
     }
 
     // The public surface of one open database.
-    return { databaseName, databaseVersion, addCost, getReport, setExchangeRates };
+    return {
+        databaseName, databaseVersion,
+        addCost, getReport, setExchangeRates
+    };
 }
 
 // The single entry point of the library.
@@ -191,7 +194,8 @@ export function openCostsDB(databaseName, databaseVersion) {
         throw new Error('openCostsDB requires a database name');
     }
     // The version defaults to 1 when it is left out.
-    const version = (databaseVersion === undefined) ? 1 : Number(databaseVersion);
+    const hasVersion = databaseVersion !== undefined;
+    const version = hasVersion ? Number(databaseVersion) : 1;
     return createDatabase(String(databaseName), version);
 }
 
