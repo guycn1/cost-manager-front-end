@@ -9,29 +9,67 @@
 // React and the MUI table primitives.
 import React, { useEffect, useState } from 'react';
 import {
-    Box, Card, CardContent, Paper, Table, TableBody, TableCell,
+    Box, Paper, Table, TableBody, TableCell,
     TableContainer, TableHead, TableRow, Typography
 } from '@mui/material';
 
-// The shared month / year / currency selector row.
+// The shared screen frame, filter row and empty note.
+import ScreenCard from './ScreenCard.jsx';
 import ReportFilters from './ReportFilters.jsx';
+import EmptyNote from './EmptyNote.jsx';
 
-// One table row for a single cost item. The sum keeps its own original
+// The table header row.
+function renderHeadRow() {
+    return (
+        <TableRow>
+            {/* Date and what the cost was for. */}
+            <TableCell>Day</TableCell>
+            <TableCell>Category</TableCell>
+            <TableCell>Description</TableCell>
+            {/* The amount and its original currency. */}
+            <TableCell align="right">Sum</TableCell>
+            <TableCell>Currency</TableCell>
+        </TableRow>
+    );
+}
+
+// One body row for a single cost item. The sum keeps its own original
 // currency; only the report total is converted.
 function renderCostRow(item, index) {
     return (
         <TableRow key={index}>
-            {/* Day, category, description, then sum and its currency. */}
+            {/* Date and what the cost was for. */}
             <TableCell>{item.date.day}</TableCell>
             <TableCell>{item.category}</TableCell>
             <TableCell>{item.description}</TableCell>
+            {/* The stored amount and its currency. */}
             <TableCell align="right">{item.sum}</TableCell>
             <TableCell>{item.currency}</TableCell>
         </TableRow>
     );
 }
 
-function MonthlyReport(props) {
+// The table of cost items plus the converted month total.
+function renderReport(report) {
+    return (
+        <Box>
+            {/* The list of cost items for the month. */}
+            <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                    <TableHead>{renderHeadRow()}</TableHead>
+                    <TableBody>{report.costs.map(renderCostRow)}</TableBody>
+                </Table>
+            </TableContainer>
+            {/* The month total in the chosen currency. */}
+            <Typography variant="h6" sx={{ mt: 2 }}>
+                Total: {report.total.sum} {report.total.currency}
+            </Typography>
+        </Box>
+    );
+}
+
+// Screen: a detailed cost table and total for one month.
+export default function MonthlyReport(props) {
     const { database, dataVersion } = props;
 
     // The selectors default to the current month and year in USD.
@@ -50,64 +88,20 @@ function MonthlyReport(props) {
     // Whether the current report has any cost items to show.
     const hasCosts = Boolean(report && report.costs.length > 0);
 
-    // Card with the filter row, then the table and total or an empty note.
+    // The filter row, then the table or the empty note.
     return (
-        <Card>
-            <CardContent>
-                <Typography variant="h5" gutterBottom>
-                    Monthly report
-                </Typography>
-
-                {/* Month, year and currency selectors. */}
-                <ReportFilters
-                    showMonth
-                    month={month}
-                    onMonthChange={setMonth}
-                    year={year}
-                    onYearChange={setYear}
-                    currency={currency}
-                    onCurrencyChange={setCurrency}
-                />
-
-                {/* Empty state message. */}
-                {report && !hasCosts ? (
-                    <Typography color="text.secondary">
-                        No cost items were recorded for this month.
-                    </Typography>
-                ) : undefined}
-
-                {/* Table of items plus the converted total. */}
-                {hasCosts ? (
-                    <Box>
-                        <TableContainer component={Paper} variant="outlined">
-                            <Table size="small">
-                                {/* Column headings. */}
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Day</TableCell>
-                                        <TableCell>Category</TableCell>
-                                        {/* Free text, then the amount. */}
-                                        <TableCell>Description</TableCell>
-                                        <TableCell align="right">Sum</TableCell>
-                                        <TableCell>Currency</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                {/* One row per cost item in the report. */}
-                                <TableBody>
-                                    {report.costs.map(renderCostRow)}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-
-                        {/* The month total, converted to the chosen currency. */}
-                        <Typography variant="h6" sx={{ mt: 2 }}>
-                            Total: {report.total.sum} {report.total.currency}
-                        </Typography>
-                    </Box>
-                ) : undefined}
-            </CardContent>
-        </Card>
+        <ScreenCard title="Monthly report">
+            {/* Month, year and currency selectors. */}
+            <ReportFilters
+                showMonth month={month} onMonthChange={setMonth}
+                year={year} onYearChange={setYear}
+                currency={currency} onCurrencyChange={setCurrency}
+            />
+            {/* The table when the month has items, otherwise a note. */}
+            {hasCosts ? renderReport(report) : undefined}
+            {report && !hasCosts ? (
+                <EmptyNote>No cost items were recorded for this month.</EmptyNote>
+            ) : undefined}
+        </ScreenCard>
     );
 }
-
-export default MonthlyReport;

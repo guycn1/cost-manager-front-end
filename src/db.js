@@ -181,13 +181,7 @@ function createDatabase(databaseName, databaseVersion) {
     }
 
     // The public surface of one open database.
-    return {
-        databaseName,
-        databaseVersion,
-        addCost,
-        getReport,
-        setExchangeRates
-    };
+    return { databaseName, databaseVersion, addCost, getReport, setExchangeRates };
 }
 
 // The single entry point of the library.

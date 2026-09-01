@@ -20,11 +20,13 @@ const theme = createTheme({
 
 // Mount the tree onto the root element defined in index.html.
 const rootElement = document.getElementById('root');
+const root = ReactDOM.createRoot(rootElement);
 
 // CssBaseline applies the MUI baseline styles; App is the whole UI.
-ReactDOM.createRoot(rootElement).render(
+root.render(
     <React.StrictMode>
         <ThemeProvider theme={theme}>
+            {/* Baseline styles, then the application. */}
             <CssBaseline />
             <App />
         </ThemeProvider>
