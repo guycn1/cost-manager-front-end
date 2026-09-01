@@ -1,0 +1,20 @@
+# Render blueprint for deploying this project as a static site.
+# Spec: https://render.com/docs/blueprint-spec
+#
+# To use it: in the Render dashboard choose New -> Blueprint and pick
+# this repository. Render reads the settings below, so there is nothing
+# to fill in by hand.
+
+services:
+  - type: web
+    name: cost-manager-front-end
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    autoDeploy: true
+    # Single page app: serve index.html for any unknown path so a
+    # refresh never returns a 404.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

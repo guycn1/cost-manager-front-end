@@ -1,5 +1,7 @@
 # Cost Manager Front End
 
+**Live app: https://cost-manager-front-end-g3lr.onrender.com**
+
 A single page application for tracking personal costs. Users add cost
 items, read a detailed monthly report, and view a category pie chart and a
 yearly bar chart, each in a currency of their choice. All data is kept in
@@ -11,6 +13,33 @@ the browser local storage.
 - MUI for the user interface
 - Recharts for the pie and bar charts
 - A local storage wrapper library, `db.js`, in two flavours
+
+## Project layout
+
+```
+db.js                     vanilla local storage wrapper (global `db`)
+test-db.html              browser console check for db.js
+index.html                Vite entry point
+render.yaml               Render static site blueprint
+public/exchange-rates.json   rates JSON bundled with the build (fallback)
+docs/                     rates JSON served from GitHub Pages
+src/
+  main.jsx                mounts the React tree, applies the MUI theme
+  App.jsx                 tab bar, opens the database, loads the rates
+  db.js                   the db.js library as an ES module
+  constants.js            database name, categories, month names, colours
+  lib/convert.js          currency conversion helper for the charts
+  services/exchangeRates.js   fetches the rates and feeds them to db.js
+  components/
+    AddCostForm.jsx       "Add Cost" screen
+    MonthlyReport.jsx     "Monthly Report" screen
+    CategoryPieChart.jsx  "Category Pie Chart" screen
+    YearlyBarChart.jsx    "Yearly Bar Chart" screen
+    SettingsPanel.jsx     "Settings" screen
+    ReportFilters.jsx     shared month / year / currency selector row
+    ScreenCard.jsx        shared card + heading frame for every screen
+    EmptyNote.jsx         shared "nothing to show" line
+```
 
 ## Running locally
 
@@ -29,7 +58,20 @@ npm run preview
 ```
 
 `npm run build` writes a static site to `dist/`, ready to deploy on any
-static host (for example Render or GitHub Pages).
+static host.
+
+## Deploying to Render
+
+The repository contains a `render.yaml` blueprint. Two ways to deploy:
+
+- **Blueprint (reproducible):** in the Render dashboard choose
+  **New -> Blueprint**, pick this repository, and Render applies the
+  settings from `render.yaml` automatically.
+- **Manual:** **New -> Static Site**, pick this repository, then set
+  **Build Command** to `npm install && npm run build` and
+  **Publish Directory** to `dist`.
+
+Every push to `main` redeploys the site.
 
 ## Exchange rates
 
@@ -37,7 +79,7 @@ The currency exchange rates are always fetched from a server with the
 Fetch API, including when the user has not entered a custom URL.
 
 The default server is a static JSON document hosted on GitHub Pages,
-served straight from the `docs/` folder of this repository:
+served from the `docs/` folder of this repository:
 
 ```
 https://guycn1.github.io/cost-manager-front-end/exchange-rates.json
@@ -55,13 +97,24 @@ bundled with the built site. It is used only as an offline fallback if the
 remote request fails.
 
 The **Settings** screen lets the user point the app at a different URL that
-returns the same JSON shape.
+returns the same JSON shape (keys `USD`, `ILS`, `GBP`, `EURO`).
 
-### Enabling the rates host
+### Enabling the GitHub Pages rates host
 
-In the GitHub repository, open **Settings -> Pages** and set the source to
-**Deploy from a branch**, branch `main`, folder `/docs`. After the first
-deployment the URL above serves the rates file.
+In the GitHub repository open **Settings -> Pages** and set the source to
+**Deploy from a branch**, branch `main`, folder `/docs`.
+
+### Test URLs for the Settings screen
+
+Both return the required shape with `Access-Control-Allow-Origin: *`:
+
+```
+https://cdn.jsdelivr.net/gh/guycn1/cost-manager-front-end@main/docs/exchange-rates-alt.json
+https://raw.githubusercontent.com/guycn1/cost-manager-front-end/main/docs/exchange-rates.json
+```
+
+The first (`exchange-rates-alt.json`) uses deliberately different values so
+the change is obvious in the report and the charts.
 
 ## The db.js library
 
@@ -82,6 +135,6 @@ const report = database.getReport('USD', 2025, 9);
 ```
 
 `addCost` stores the item together with its original currency and the
-current date. `getReport` returns the item list plus a total converted to
-the requested currency. Without a year and month it reports on the current
-month.
+current date. `getReport` returns the item list (each item keeps its
+original currency) plus a total converted to the requested currency.
+Without a year and month it reports on the current month.
