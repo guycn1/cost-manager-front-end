@@ -15,7 +15,7 @@ import {
 // The database library, shared constants and the rates service.
 import { openCostsDB } from './db.js';
 import { databaseName, databaseVersion } from './constants.js';
-import { loadExchangeRates, remoteRatesUrl } from './services/exchangeRates.js';
+import { loadExchangeRates, remoteRatesUrl } from './services/rates.js';
 
 // One screen component per tab.
 import AddCostForm from './components/AddCostForm.jsx';

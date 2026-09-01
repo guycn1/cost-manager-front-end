@@ -32,7 +32,7 @@ src/
   db.js                   the db.js library as an ES module
   constants.js            database name, categories, month names, colours
   lib/convert.js          currency conversion helper for the charts
-  services/exchangeRates.js   fetches the rates and feeds them to db.js
+  services/rates.js        fetches the rates and feeds them to db.js
   components/
     AddCostForm.jsx       "Add Cost" screen
     MonthlyReport.jsx     "Monthly Report" screen

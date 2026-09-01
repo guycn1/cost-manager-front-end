@@ -1,5 +1,5 @@
 /*
- * exchangeRates.js
+ * rates.js
  *
  * Retrieves the currency exchange rates from a server with the Fetch
  * API and feeds them into the db.js library.

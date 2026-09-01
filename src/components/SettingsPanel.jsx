@@ -3,7 +3,7 @@
  *
  * Screen that lets the user set a URL from which the currency exchange
  * rates are fetched. When the field is left empty the application uses
- * its own remote rates server (see services/exchangeRates.js).
+ * its own remote rates server (see services/rates.js).
  */
 
 // React and the MUI primitives used on this screen.
@@ -14,7 +14,7 @@ import { Alert, Button, Stack, TextField, Typography } from '@mui/material';
 import ScreenCard from './ScreenCard.jsx';
 import {
     defaultRatesUrl, setRatesUrl, readStoredRatesUrl, loadExchangeRates
-} from '../services/exchangeRates.js';
+} from '../services/rates.js';
 
 // The example JSON shown to the user, and the help paragraph around it.
 const exampleJson = '{"USD":1,"GBP":0.6,"EURO":0.7,"ILS":3.4}';
