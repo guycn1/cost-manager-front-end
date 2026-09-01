@@ -1,4 +1,4 @@
-# Cost Manager Front End
+# Cost Manager Front-End
 
 | | |
 | --- | --- |
