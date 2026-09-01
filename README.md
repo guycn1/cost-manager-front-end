@@ -21,7 +21,8 @@ the browser local storage.
 
 ```
 db.js                     vanilla local storage wrapper (global `db`)
-test-db.html              browser console check for db.js
+testdb.js                 browser console check for db.js
+testdb.html               loads db.js and testdb.js together
 index.html                Vite entry point
 render.yaml               Render static site blueprint
 public/exchange-rates.json   rates JSON bundled with the build (fallback)
@@ -125,7 +126,8 @@ Two versions live in this repository:
 
 - `db.js` at the project root: a plain script. Loading it with
   `<script src="db.js"></script>` adds a `db` property to the global
-  object. `test-db.html` runs a small check in the browser console.
+  object. Open `testdb.html` to run `testdb.js` and see the check in
+  the browser console.
 - `src/db.js`: the same behaviour exported as an ES module, imported by
   the React code.
 
