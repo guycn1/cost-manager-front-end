@@ -33,12 +33,15 @@ src/
   db.js                   the db.js library as an ES module
   constants.js            database name, categories, month names, colours
   lib/convert.js          currency conversion helper for the charts
-  services/rates.js        fetches the rates and feeds them to db.js
+  services/rates.js       fetches the rates and feeds them to db.js
   components/
     AddCostForm.jsx       "Add Cost" screen
     MonthlyReport.jsx     "Monthly Report" screen
+    ReportTable.jsx       cost table + total for the monthly report
     CategoryPieChart.jsx  "Category Pie Chart" screen
+    CategoryPie.jsx       the pie chart itself
     YearlyBarChart.jsx    "Yearly Bar Chart" screen
+    MonthlyBars.jsx       the bar chart itself
     SettingsPanel.jsx     "Settings" screen
     ReportFilters.jsx     shared month / year / currency selector row
     ScreenCard.jsx        shared card + heading frame for every screen
@@ -101,7 +104,9 @@ bundled with the built site. It is used only as an offline fallback if the
 remote request fails.
 
 The **Settings** screen lets the user point the app at a different URL that
-returns the same JSON shape (keys `USD`, `ILS`, `GBP`, `EURO`).
+returns the same JSON shape (keys `USD`, `ILS`, `GBP`, `EURO`). A saved URL
+takes effect immediately, and the app re-checks the active URL every ten
+minutes so later changes to the published rates are picked up.
 
 ### Enabling the GitHub Pages rates host
 
