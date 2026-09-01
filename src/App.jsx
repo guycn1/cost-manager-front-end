@@ -30,33 +30,14 @@ const tabLabels = [
     'Yearly Bar Chart', 'Settings'
 ];
 
-// The floating message bar at the bottom of the screen.
-function renderNotice(notice, onClose) {
-    // The Snackbar needs a single child, so build the alert (or
-    // undefined) first, then drop it in.
-    const alert = notice
-        ? <Alert severity={notice.severity} onClose={onClose}>{notice.text}</Alert>
-        : undefined;
-    // Auto-hide after five seconds; centred along the bottom edge.
-    const anchor = { vertical: 'bottom', horizontal: 'center' };
-    return (
-        <Snackbar
-            open={Boolean(notice)} autoHideDuration={5000}
-            onClose={onClose} anchorOrigin={anchor}
-        >
-            {/* The alert element, or nothing when there is no message. */}
-            {alert}
-        </Snackbar>
-    );
-}
-
-// The root component: opens the database, loads the rates and hosts
-// the tab bar that switches between the five screens.
+// The root component: opens the database, loads the rates and hosts the
+// tab bar that switches between the five screens.
 export default function App() {
     // The open database wrapper is stable for the whole session.
-    const database = useMemo(function () {
-        return openCostsDB(databaseName, databaseVersion);
-    }, []);
+    const database = useMemo(
+        () => openCostsDB(databaseName, databaseVersion),
+        []
+    );
 
     // Which tab is visible, a reload counter for the report and chart
     // screens, and the current transient message (or null).
@@ -65,26 +46,23 @@ export default function App() {
     const [notice, setNotice] = useState(null);
 
     // Bump the reload counter so child screens refetch.
-    const bumpDataVersion = useCallback(function () {
-        setDataVersion(function (value) {
-            return value + 1;
-        });
-    }, []);
+    const bumpDataVersion = useCallback(
+        () => setDataVersion(value => value + 1),
+        []
+    );
 
     // Clear the current message.
-    const clearNotice = useCallback(function () {
-        setNotice(null);
-    }, []);
+    const clearNotice = useCallback(() => setNotice(null), []);
 
     // Pull the exchange rates from the server as soon as the app loads.
-    useEffect(function () {
+    useEffect(() => {
         loadExchangeRates()
-            .then(function (result) {
+            .then(result => {
                 bumpDataVersion();
                 // A source other than the remote one means the bundled
                 // copy of the rates was used as a fallback.
                 if (result.source !== remoteRatesUrl) {
-                    // Let the user know the rates may be stale.
+                    // Warn that the rates on screen may be stale.
                     setNotice({
                         severity: 'warning',
                         text: 'The rates server could not be reached. '
@@ -92,7 +70,7 @@ export default function App() {
                     });
                 }
             })
-            .catch(function (error) {
+            .catch(error => {
                 // Both the remote server and the bundled copy failed.
                 setNotice({
                     severity: 'error',
@@ -102,7 +80,7 @@ export default function App() {
     }, [bumpDataVersion]);
 
     // Called by a child screen after it changes the stored data.
-    const handleDataChanged = useCallback(function (message) {
+    const handleDataChanged = useCallback(message => {
         bumpDataVersion();
         if (message) {
             setNotice({ severity: 'success', text: message });
@@ -110,15 +88,10 @@ export default function App() {
     }, [bumpDataVersion]);
 
     // Called by the settings screen after new rates are loaded.
-    const handleRatesReloaded = useCallback(function (message) {
+    const handleRatesReloaded = useCallback(message => {
         bumpDataVersion();
         setNotice({ severity: 'success', text: message });
     }, [bumpDataVersion]);
-
-    // Tab strip change handler.
-    function onTabChange(event, value) {
-        setActiveTab(value);
-    }
 
     // The screen for each tab, rebuilt on render so props stay current.
     const screens = [
@@ -142,14 +115,12 @@ export default function App() {
 
                 {/* One tab per label; its index is the tab value. */}
                 <Tabs
-                    value={activeTab} onChange={onTabChange}
+                    value={activeTab}
+                    onChange={(event, value) => setActiveTab(value)}
                     textColor="inherit" indicatorColor="secondary"
                     variant="scrollable"
                 >
-                    {/* Build the strip from the tabLabels list. */}
-                    {tabLabels.map(function (label) {
-                        return <Tab key={label} label={label} />;
-                    })}
+                    {tabLabels.map(label => <Tab key={label} label={label} />)}
                 </Tabs>
             </AppBar>
 
@@ -158,8 +129,18 @@ export default function App() {
                 {screens[activeTab]}
             </Container>
 
-            {/* Success, warning and error messages. */}
-            {renderNotice(notice, clearNotice)}
+            {/* Transient success, warning and error message. */}
+            <Snackbar
+                open={Boolean(notice)} autoHideDuration={5000} onClose={clearNotice}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                {/* The coloured alert, only while a message is set. */}
+                {notice ? (
+                    <Alert severity={notice.severity} onClose={clearNotice}>
+                        {notice.text}
+                    </Alert>
+                ) : undefined}
+            </Snackbar>
         </Box>
     );
 }

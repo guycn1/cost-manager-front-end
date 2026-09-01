@@ -22,15 +22,6 @@ const helpText = 'The exchange rates are always fetched from a server with '
     + 'the Fetch API. Enter a URL that returns a JSON such as ' + exampleJson
     + '. Leave it empty to use the built in server.';
 
-// The greyed out paragraph above the URL field.
-function renderHelpText() {
-    return (
-        <Typography color="text.secondary" sx={{ mb: 2 }}>
-            {helpText}
-        </Typography>
-    );
-}
-
 // Screen: configure the exchange rates URL and reload the rates.
 export default function SettingsPanel(props) {
     const { onRatesReloaded } = props;
@@ -83,15 +74,14 @@ export default function SettingsPanel(props) {
         }
     }
 
-    // Change handler for the URL text field.
-    function onUrlChange(event) {
-        setUrl(event.target.value);
-    }
-
     // Help text, the URL field, the status line and the two buttons.
     return (
         <ScreenCard title="Settings">
-            {renderHelpText()}
+            {/* Greyed out explanation above the field. */}
+            <Typography color="text.secondary" sx={{ mb: 2 }}>
+                {helpText}
+            </Typography>
+
             <Stack spacing={3}>
                 {/* The URL field itself. */}
                 <TextField
@@ -99,7 +89,7 @@ export default function SettingsPanel(props) {
                     fullWidth
                     value={url}
                     placeholder={defaultRatesUrl}
-                    onChange={onUrlChange}
+                    onChange={event => setUrl(event.target.value)}
                 />
 
                 {/* Result of the last save or reset. */}
@@ -112,7 +102,6 @@ export default function SettingsPanel(props) {
                     <Button variant="contained" onClick={handleSave}>
                         Save and load
                     </Button>
-                    {/* Clears the field and reloads the default. */}
                     <Button variant="outlined" onClick={handleReset}>
                         Use default
                     </Button>

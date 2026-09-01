@@ -22,48 +22,18 @@ import { chartColors } from '../constants.js';
 // Group the report items by category, converting every sum first.
 function buildCategoryTotals(reportCosts, currency) {
     const totalsByCategory = {};
-    // Add every converted sum onto its category bucket.
-    reportCosts.forEach(function (item) {
+    // Add every converted sum onto its category's running total.
+    reportCosts.forEach(item => {
         const converted = convertAmount(item.sum, item.currency, currency);
         const key = item.category || 'Uncategorised';
         totalsByCategory[key] = (totalsByCategory[key] || 0) + converted;
     });
-    // Shape each bucket for recharts and give it a colour in order.
-    return Object.keys(totalsByCategory).map(function (category, index) {
-        const value = roundMoney(totalsByCategory[category]);
-        const color = chartColors[index % chartColors.length];
-        return { name: category, value, color };
-    });
-}
-
-// The slice label: "Category: amount".
-function sliceLabel(entry) {
-    return entry.name + ': ' + entry.value;
-}
-
-// A coloured slice for one category datum.
-function renderSlice(entry) {
-    return <Cell key={entry.name} fill={entry.color} />;
-}
-
-// The full pie chart for the given category totals.
-function renderChart(chartData) {
-    return (
-        <ResponsiveContainer width="100%" height={360}>
-            <PieChart>
-                {/* One coloured slice per category. */}
-                <Pie
-                    data={chartData} dataKey="value" nameKey="name"
-                    outerRadius={130} label={sliceLabel}
-                >
-                    {chartData.map(renderSlice)}
-                </Pie>
-                {/* Hover tooltip and the category legend. */}
-                <Tooltip />
-                <Legend />
-            </PieChart>
-        </ResponsiveContainer>
-    );
+    // Turn the totals into the { name, value, colour } rows recharts wants.
+    return Object.keys(totalsByCategory).map((category, index) => ({
+        name: category,
+        value: roundMoney(totalsByCategory[category]),
+        color: chartColors[index % chartColors.length]
+    }));
 }
 
 // Screen: a pie chart of one month's costs split by category.
@@ -78,15 +48,16 @@ export default function CategoryPieChart(props) {
     const [reportCosts, setReportCosts] = useState([]);
 
     // Reload the raw report items when a selector or the data changes.
-    useEffect(function () {
+    useEffect(() => {
         const result = database.getReport(currency, year, month);
         setReportCosts(result.costs);
     }, [database, currency, year, month, dataVersion]);
 
     // Derive the per category totals for the chart.
-    const chartData = useMemo(function () {
-        return buildCategoryTotals(reportCosts, currency);
-    }, [reportCosts, currency]);
+    const chartData = useMemo(
+        () => buildCategoryTotals(reportCosts, currency),
+        [reportCosts, currency]
+    );
 
     // The filter row, then the pie or the empty note.
     return (
@@ -97,10 +68,29 @@ export default function CategoryPieChart(props) {
                 year={year} onYearChange={setYear}
                 currency={currency} onCurrencyChange={setCurrency}
             />
-            {/* The pie when the month has items, otherwise a note. */}
+
+            {/* An empty note when the month has nothing, else the pie. */}
             {chartData.length === 0 ? (
                 <EmptyNote>No cost items were recorded for this month.</EmptyNote>
-            ) : renderChart(chartData)}
+            ) : (
+                <ResponsiveContainer width="100%" height={360}>
+                    <PieChart>
+                        {/* One labelled, coloured slice per category. */}
+                        <Pie
+                            data={chartData} dataKey="value" nameKey="name"
+                            outerRadius={130}
+                            label={entry => entry.name + ': ' + entry.value}
+                        >
+                            {chartData.map(entry => (
+                                <Cell key={entry.name} fill={entry.color} />
+                            ))}
+                        </Pie>
+                        {/* Hover tooltip and the category legend. */}
+                        <Tooltip />
+                        <Legend />
+                    </PieChart>
+                </ResponsiveContainer>
+            )}
         </ScreenCard>
     );
 }

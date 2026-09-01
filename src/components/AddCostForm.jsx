@@ -21,16 +21,9 @@ import { defaultCategories } from '../constants.js';
 const emptyForm = { sum: '', currency: 'USD', category: '', description: '' };
 
 // One <MenuItem> per supported currency (USD, ILS, GBP, EURO).
-function renderCurrencyItems() {
-    return supportedCurrencies.map(function (currency) {
-        return <MenuItem key={currency} value={currency}>{currency}</MenuItem>;
-    });
-}
-
-// The text field the category autocomplete renders.
-function renderCategoryInput(params) {
-    return <TextField {...params} label="Category" required />;
-}
+const currencyMenu = supportedCurrencies.map(code => (
+    <MenuItem key={code} value={code}>{code}</MenuItem>
+));
 
 // Screen: capture a new cost item and pass it to db.js.
 export default function AddCostForm(props) {
@@ -42,9 +35,22 @@ export default function AddCostForm(props) {
 
     // Update a single field of the form by name.
     function updateField(fieldName, value) {
-        setForm(function (previous) {
-            return Object.assign({}, previous, { [fieldName]: value });
-        });
+        setForm(previous => Object.assign({}, previous, { [fieldName]: value }));
+    }
+
+    // Change handlers for the two plain text fields.
+    function onSum(event) {
+        updateField('sum', event.target.value);
+    }
+    function onCurrency(event) {
+        updateField('currency', event.target.value);
+    }
+    // The autocomplete hands its typed text over as a second argument.
+    function onCategory(event, value) {
+        updateField('category', value);
+    }
+    function onDescription(event) {
+        updateField('description', event.target.value);
     }
 
     // Read the form, validate it and hand a clean cost to db.js.
@@ -83,22 +89,6 @@ export default function AddCostForm(props) {
         onCostAdded('Cost item added.');
     }
 
-    // Change handlers, one per field. The autocomplete passes the new
-    // text as a second argument; the plain fields use event.target.
-    function onSum(event) {
-        updateField('sum', event.target.value);
-    }
-    function onCurrency(event) {
-        updateField('currency', event.target.value);
-    }
-    // Category comes from the autocomplete's input value.
-    function onCategory(event, value) {
-        updateField('category', value);
-    }
-    function onDescription(event) {
-        updateField('description', event.target.value);
-    }
-
     // The four fields stacked above the submit button.
     return (
         <ScreenCard title="Add a new cost item">
@@ -116,25 +106,22 @@ export default function AddCostForm(props) {
                         select label="Currency" required
                         value={form.currency} onChange={onCurrency}
                     >
-                        {renderCurrencyItems()}
+                        {currencyMenu}
                     </TextField>
 
                     {/* Category: pick from the list or type a new one. */}
                     <Autocomplete
-                        freeSolo
-                        options={defaultCategories}
-                        inputValue={form.category}
-                        onInputChange={onCategory}
-                        renderInput={renderCategoryInput}
+                        freeSolo options={defaultCategories}
+                        inputValue={form.category} onInputChange={onCategory}
+                        renderInput={params => (
+                            <TextField {...params} label="Category" required />
+                        )}
                     />
 
                     {/* Free text description. */}
                     <TextField
-                        label="Description"
-                        multiline
-                        minRows={2}
-                        value={form.description}
-                        onChange={onDescription}
+                        label="Description" multiline minRows={2}
+                        value={form.description} onChange={onDescription}
                     />
 
                     {/* Validation message, shown only when set. */}

@@ -49,9 +49,7 @@ function isValidRatesObject(rates) {
         return false;
     }
     // Number.isFinite is false for missing keys and non numbers alike.
-    return supportedCurrencies.every(function (currency) {
-        return Number.isFinite(rates[currency]);
-    });
+    return supportedCurrencies.every(currency => Number.isFinite(rates[currency]));
 }
 
 // Fetch a rates JSON from a single URL and validate its shape.

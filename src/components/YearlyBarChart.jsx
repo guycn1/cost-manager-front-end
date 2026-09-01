@@ -30,23 +30,6 @@ function buildMonthlyTotals(database, currency, year) {
     return rows;
 }
 
-// The full bar chart: grid, axes, tooltip and the bar series.
-function renderChart(rows, currency) {
-    return (
-        <ResponsiveContainer width="100%" height={360}>
-            <BarChart data={rows}>
-                {/* Reference grid, the two axes and the hover tooltip. */}
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                {/* One bar per month. */}
-                <Bar dataKey="total" fill="#1976d2" name={'Total in ' + currency} />
-            </BarChart>
-        </ResponsiveContainer>
-    );
-}
-
 // Screen: a bar chart of the twelve monthly totals in one year.
 export default function YearlyBarChart(props) {
     const { database, dataVersion } = props;
@@ -57,16 +40,15 @@ export default function YearlyBarChart(props) {
     const [rows, setRows] = useState([]);
 
     // Recompute the twelve monthly totals on any change.
-    useEffect(function () {
+    useEffect(() => {
         setRows(buildMonthlyTotals(database, currency, year));
     }, [database, currency, year, dataVersion]);
 
     // Whether any month in the selected year has a cost.
-    const hasData = useMemo(function () {
-        return rows.some(function (row) {
-            return row.total > 0;
-        });
-    }, [rows]);
+    const hasData = useMemo(
+        () => rows.some(row => row.total > 0),
+        [rows]
+    );
 
     // The filter row, then the chart or the empty note.
     return (
@@ -76,9 +58,24 @@ export default function YearlyBarChart(props) {
                 showMonth={false} year={year} onYearChange={setYear}
                 currency={currency} onCurrencyChange={setCurrency}
             />
-            {/* The chart when the year has items, otherwise a note. */}
-            {hasData ? renderChart(rows, currency) : (
+
+            {/* An empty note when the year has nothing, else the chart. */}
+            {!hasData ? (
                 <EmptyNote>No cost items were recorded for this year.</EmptyNote>
+            ) : (
+                <ResponsiveContainer width="100%" height={360}>
+                    {/* Grid, the two axes, the tooltip and one bar per month. */}
+                    <BarChart data={rows}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar
+                            dataKey="total" fill="#1976d2"
+                            name={'Total in ' + currency}
+                        />
+                    </BarChart>
+                </ResponsiveContainer>
             )}
         </ScreenCard>
     );

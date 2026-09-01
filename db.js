@@ -209,7 +209,7 @@
     globalObject.db = {
         openCostsDB,
         // Let a test page override the rates before calling getReport.
-        setExchangeRates: function (rates) {
+        setExchangeRates(rates) {
             if (rates && typeof rates === 'object') {
                 exchangeRates = Object.assign({ USD: 1 }, rates);
             }

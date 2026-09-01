@@ -9,7 +9,7 @@
 // React and the MUI table primitives.
 import React, { useEffect, useState } from 'react';
 import {
-    Box, Paper, Table, TableBody, TableCell,
+    Paper, Table, TableBody, TableCell,
     TableContainer, TableHead, TableRow, Typography
 } from '@mui/material';
 
@@ -18,55 +18,8 @@ import ScreenCard from './ScreenCard.jsx';
 import ReportFilters from './ReportFilters.jsx';
 import EmptyNote from './EmptyNote.jsx';
 
-// The table header row.
-function renderHeadRow() {
-    return (
-        <TableRow>
-            {/* Date and what the cost was for. */}
-            <TableCell>Day</TableCell>
-            <TableCell>Category</TableCell>
-            <TableCell>Description</TableCell>
-            {/* The amount and its original currency. */}
-            <TableCell align="right">Sum</TableCell>
-            <TableCell>Currency</TableCell>
-        </TableRow>
-    );
-}
-
-// One body row for a single cost item. The sum keeps its own original
-// currency; only the report total is converted.
-function renderCostRow(item, index) {
-    return (
-        <TableRow key={index}>
-            {/* Date and what the cost was for. */}
-            <TableCell>{item.date.day}</TableCell>
-            <TableCell>{item.category}</TableCell>
-            <TableCell>{item.description}</TableCell>
-            {/* The stored amount and its currency. */}
-            <TableCell align="right">{item.sum}</TableCell>
-            <TableCell>{item.currency}</TableCell>
-        </TableRow>
-    );
-}
-
-// The table of cost items plus the converted month total.
-function renderReport(report) {
-    return (
-        <Box>
-            {/* The list of cost items for the month. */}
-            <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
-                    <TableHead>{renderHeadRow()}</TableHead>
-                    <TableBody>{report.costs.map(renderCostRow)}</TableBody>
-                </Table>
-            </TableContainer>
-            {/* The month total in the chosen currency. */}
-            <Typography variant="h6" sx={{ mt: 2 }}>
-                Total: {report.total.sum} {report.total.currency}
-            </Typography>
-        </Box>
-    );
-}
+// The column headings, in table order.
+const headings = ['Day', 'Category', 'Description', 'Sum', 'Currency'];
 
 // Screen: a detailed cost table and total for one month.
 export default function MonthlyReport(props) {
@@ -80,7 +33,7 @@ export default function MonthlyReport(props) {
     const [report, setReport] = useState(null);
 
     // Rebuild the report when a selector or the stored data changes.
-    useEffect(function () {
+    useEffect(() => {
         const result = database.getReport(currency, year, month);
         setReport(result);
     }, [database, currency, year, month, dataVersion]);
@@ -97,10 +50,47 @@ export default function MonthlyReport(props) {
                 year={year} onYearChange={setYear}
                 currency={currency} onCurrencyChange={setCurrency}
             />
-            {/* The table when the month has items, otherwise a note. */}
-            {hasCosts ? renderReport(report) : undefined}
+
+            {/* A note when the chosen month holds no items. */}
             {report && !hasCosts ? (
                 <EmptyNote>No cost items were recorded for this month.</EmptyNote>
+            ) : undefined}
+
+            {/* The table of items plus the converted month total. */}
+            {hasCosts ? (
+                <>
+                    <TableContainer component={Paper} variant="outlined">
+                        <Table size="small">
+                            {/* Heading row, one cell per column. */}
+                            <TableHead>
+                                <TableRow>
+                                    {headings.map(head => (
+                                        <TableCell key={head}>{head}</TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableHead>
+                            {/* One body row per cost item. */}
+                            <TableBody>
+                                {report.costs.map((item, index) => (
+                                    <TableRow key={index}>
+                                        {/* Day, category and description. */}
+                                        <TableCell>{item.date.day}</TableCell>
+                                        <TableCell>{item.category}</TableCell>
+                                        <TableCell>{item.description}</TableCell>
+                                        {/* The amount and its own currency. */}
+                                        <TableCell>{item.sum}</TableCell>
+                                        <TableCell>{item.currency}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+
+                    {/* The month total, converted to the chosen currency. */}
+                    <Typography variant="h6" sx={{ mt: 2 }}>
+                        Total: {report.total.sum} {report.total.currency}
+                    </Typography>
+                </>
             ) : undefined}
         </ScreenCard>
     );
