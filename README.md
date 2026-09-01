@@ -34,16 +34,34 @@ static host (for example Render or GitHub Pages).
 ## Exchange rates
 
 The currency exchange rates are always fetched from a server with the
-Fetch API. A JSON file, `public/exchange-rates.json`, is bundled with the
-deployed site and used by default:
+Fetch API, including when the user has not entered a custom URL.
+
+The default server is a static JSON document hosted on GitHub Pages,
+served straight from the `docs/` folder of this repository:
+
+```
+https://guycn1.github.io/cost-manager-front-end/exchange-rates.json
+```
 
 ```json
 { "USD": 1, "GBP": 0.79, "EURO": 0.92, "ILS": 3.7 }
 ```
 
+GitHub Pages answers this file with `Access-Control-Allow-Origin: *`, so it
+can be read from the deployed application on any origin.
+
+A copy of the same JSON lives in `public/exchange-rates.json` and is
+bundled with the built site. It is used only as an offline fallback if the
+remote request fails.
+
 The **Settings** screen lets the user point the app at a different URL that
-returns the same JSON shape. The response is expected to send
-`Access-Control-Allow-Origin: *`.
+returns the same JSON shape.
+
+### Enabling the rates host
+
+In the GitHub repository, open **Settings -> Pages** and set the source to
+**Deploy from a branch**, branch `main`, folder `/docs`. After the first
+deployment the URL above serves the rates file.
 
 ## The db.js library
 

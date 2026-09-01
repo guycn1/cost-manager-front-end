@@ -11,7 +11,7 @@ import {
 
 import { openCostsDB } from './db.js';
 import { DATABASE_NAME, DATABASE_VERSION } from './constants.js';
-import { loadExchangeRates } from './services/exchangeRates.js';
+import { loadExchangeRates, REMOTE_RATES_URL } from './services/exchangeRates.js';
 
 import AddCostForm from './components/AddCostForm.jsx';
 import MonthlyReport from './components/MonthlyReport.jsx';
@@ -36,16 +36,24 @@ function App() {
     // Pull the exchange rates from the server as soon as the app starts.
     useEffect(function () {
         loadExchangeRates()
-            .then(function () {
+            .then(function (result) {
                 setDataVersion(function (value) {
                     return value + 1;
                 });
+                // Tell the user when the remote server could not be reached
+                // and the bundled copy of the rates was used instead.
+                if (result.source !== REMOTE_RATES_URL) {
+                    setNotice({
+                        severity: 'warning',
+                        text: 'The rates server could not be reached. '
+                            + 'Using the built in copy of the rates for now.'
+                    });
+                }
             })
             .catch(function (error) {
                 setNotice({
-                    severity: 'warning',
-                    text: 'Could not load exchange rates from the server. '
-                        + 'Using built in rates for now. (' + error.message + ')'
+                    severity: 'error',
+                    text: 'Could not load exchange rates: ' + error.message
                 });
             });
     }, []);

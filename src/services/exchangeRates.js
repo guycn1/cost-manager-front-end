@@ -1,21 +1,32 @@
 // exchangeRates.js
 //
 // Retrieves the currency exchange rates from a server using the Fetch API
-// and feeds them into the db.js library. The application always works
-// with server rates, even when the user has not entered a custom URL in
-// the settings screen: in that case a JSON file bundled with the deployed
-// site is used instead.
+// and feeds them into the db.js library.
+//
+// The primary source is a static JSON document hosted separately from the
+// application, on GitHub Pages. The application always fetches its rates
+// over the network, including when the user has not entered a custom URL
+// in the settings screen. A copy of the JSON is bundled with the built
+// site and used only as a last resort if the network request fails.
 
 import { setExchangeRates, SUPPORTED_CURRENCIES } from '../db.js';
 
 // Local storage key that holds the user supplied rates URL.
 const RATES_URL_STORAGE_KEY = 'costsdb:ratesUrl';
 
-// The JSON file that ships with the deployed site. It lives next to the
-// built application, so a relative reference resolves to the same origin.
-export const DEFAULT_RATES_URL = new URL('exchange-rates.json', document.baseURI).href;
+// The remote server that provides the rates. This is a static JSON file
+// deployed on GitHub Pages; it answers with "Access-Control-Allow-Origin: *"
+// so it can be read from any origin.
+export const REMOTE_RATES_URL =
+    'https://guycn1.github.io/cost-manager-front-end/exchange-rates.json';
 
-// Read the URL the user configured, or fall back to the bundled file.
+// Offline safety net: the same JSON, bundled with the built application.
+export const BUNDLED_RATES_URL = new URL('exchange-rates.json', document.baseURI).href;
+
+// The source used when the user has not configured anything.
+export const DEFAULT_RATES_URL = REMOTE_RATES_URL;
+
+// Read the URL the user configured, or fall back to the remote default.
 export function getRatesUrl() {
     const storedUrl = window.localStorage.getItem(RATES_URL_STORAGE_KEY);
     return storedUrl && storedUrl.trim() ? storedUrl.trim() : DEFAULT_RATES_URL;
@@ -41,11 +52,9 @@ function isValidRatesObject(rates) {
     });
 }
 
-// Fetch the rates from the given URL (or the resolved default) and push
-// them into db.js. Returns the rates object that ended up being used.
-export async function loadExchangeRates(url) {
-    const targetUrl = url && url.trim() ? url.trim() : getRatesUrl();
-    const response = await fetch(targetUrl, { cache: 'no-store' });
+// Fetch a rates JSON from a single URL and validate its shape.
+async function fetchRatesFrom(url) {
+    const response = await fetch(url, { cache: 'no-store' });
     if (!response.ok) {
         throw new Error('the rates server answered with status ' + response.status);
     }
@@ -53,6 +62,31 @@ export async function loadExchangeRates(url) {
     if (!isValidRatesObject(rates)) {
         throw new Error('the rates JSON is missing one of the supported currencies');
     }
-    setExchangeRates(rates);
     return rates;
+}
+
+// Load the rates and push them into db.js.
+//
+// When an explicit URL is given (the user saved one in the settings) it
+// is used as is and any failure is reported to the caller. Otherwise the
+// remote server is tried first and the bundled copy is the fallback.
+export async function loadExchangeRates(url) {
+    const explicitUrl = url && url.trim() ? url.trim() : null;
+
+    if (explicitUrl) {
+        const rates = await fetchRatesFrom(explicitUrl);
+        setExchangeRates(rates);
+        return { rates: rates, source: explicitUrl };
+    }
+
+    // No user URL: fetch from the remote server, then the bundled file.
+    try {
+        const rates = await fetchRatesFrom(REMOTE_RATES_URL);
+        setExchangeRates(rates);
+        return { rates: rates, source: REMOTE_RATES_URL };
+    } catch (remoteError) {
+        const rates = await fetchRatesFrom(BUNDLED_RATES_URL);
+        setExchangeRates(rates);
+        return { rates: rates, source: BUNDLED_RATES_URL, remoteError: remoteError };
+    }
 }
