@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | **Live app** | <https://cost-manager-front-end-g3lr.onrender.com> |
-| **Demo video** | [Cost Manager Front End Project - Guy Cohen & Liron Avrahamof](https://www.youtube.com/watch?v=XI3yuZJIzDk) |
+| **Demo video** | [Cost Manager Front-End Project - Guy Cohen & Liron Avrahamof](https://www.youtube.com/watch?v=XI3yuZJIzDk) |
 
 A single page application for tracking personal costs. Users add cost
 items, read a detailed monthly report, and view a category pie chart and a
